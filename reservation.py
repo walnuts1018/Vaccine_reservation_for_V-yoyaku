@@ -330,10 +330,8 @@ schedule.every(1).hour.do(reserve)
 schedule.every().day.at("12:00").do(reserve)
 
 
-
-
+reserve()
 while True:
-    reserve()
     schedule.run_pending()
     time.sleep(60)
     
