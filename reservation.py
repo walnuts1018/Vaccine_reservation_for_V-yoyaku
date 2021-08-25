@@ -309,7 +309,7 @@ schedule.every().day.at("12:00").do(reserve)
 
 
 
-if __name__ == '__main__':
+while True:
     reserve()
     schedule.run_pending()
     time.sleep(60)
