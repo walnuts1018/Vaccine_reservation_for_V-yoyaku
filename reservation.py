@@ -179,8 +179,8 @@ def reserve():
                 driver.refresh()
                 continue
 
-            #本来20日(for debug)
-            if int(td.days) <=20:
+            #本来20日(余裕をもって21にしてみる)
+            if int(td.days) <=21:
 
                 selmonth=month_i-now_month
 
@@ -301,7 +301,7 @@ def reserve():
     # ブラウザ停止
     driver.quit()
 
-          
+"""     
     pf = platform.system()
     if pf == 'Windows':
         try:
@@ -320,6 +320,7 @@ def reserve():
             res = subprocess.check_call("pkill chromedriver")
         except:
             print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
+"""
 
 
 
