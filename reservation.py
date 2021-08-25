@@ -172,9 +172,9 @@ def reserve():
             res_datetime = datetime.strptime(res_datetime_str, '%Y-%m-%d %H:%M:%S')
             #予約可能期間か確認
             td=res_datetime-now_datetime
-
+            print("予約日-本日=",td.days , "20以上なら予約処理されません")
             if td.days < 1:
-
+                print("configの日付が古いです")
                 n=n+1
                 driver.refresh()
                 continue
@@ -289,9 +289,6 @@ def reserve():
                                 exit()
                     n=n+1
                     continue
-
-                    
-
             else:
                 n=n+1
                 driver.refresh()
