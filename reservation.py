@@ -16,6 +16,8 @@ from struct import unpack
 from datetime import date, datetime
 import calendar
 import schedule
+import subprocess
+import platform
 
 CHROMEDRIVER = "/usr/bin/chromedriver"
  
@@ -301,6 +303,27 @@ def reserve():
         
     # ブラウザ停止
     driver.quit()
+
+          
+    pf = platform.system()
+    if pf == 'Windows':
+        try:
+            res = subprocess.check_call("taskkill /im chrome")
+        except:
+            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
+
+    elif pf == 'Darwin':
+        try:
+            res = subprocess.check_call("pkill chrome")
+        except:
+            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
+
+    elif pf == 'Linux':
+        try:
+            res = subprocess.check_call("pkill chrome")
+        except:
+            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
+
 
 
 schedule.every(1).hour.do(reserve)
