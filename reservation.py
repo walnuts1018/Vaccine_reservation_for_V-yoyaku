@@ -77,13 +77,13 @@ def reserve():
     driver.find_element(By.ID, "login_pwd").send_keys("1018")
     print("入力完了")
     driver.find_element_by_xpath("//*[@id='btn_login']").click()
-    print("ログイン完了")
+    
 
     element = WebDriverWait(driver, 10).until(
     expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
     )
-    if len(driver.find_element(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
-
+    if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
+        print("ログイン完了")
         #予約・変更するボタン
         driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
         print("予約ページ遷移完了")
