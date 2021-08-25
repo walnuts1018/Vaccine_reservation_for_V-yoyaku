@@ -308,19 +308,19 @@ def reserve():
     pf = platform.system()
     if pf == 'Windows':
         try:
-            res = subprocess.check_call("taskkill /im chrome")
+            res = subprocess.check_call("taskkill /im chromedriver")
         except:
             print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
 
     elif pf == 'Darwin':
         try:
-            res = subprocess.check_call("pkill chrome")
+            res = subprocess.check_call("pkill chromedriver")
         except:
             print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
 
     elif pf == 'Linux':
         try:
-            res = subprocess.check_call("pkill chrome")
+            res = subprocess.check_call("pkill chromedriver")
         except:
             print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
 
