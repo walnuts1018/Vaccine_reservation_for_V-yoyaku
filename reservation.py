@@ -77,7 +77,7 @@ def reserve():
     #driver.find_element(By.ID, "login_id").click()
     driver.find_element_by_xpath("//*[@id='login_id']").send_keys(ticket_number)
     #driver.find_element(By.ID, "login_pwd").click()
-    driver.find_element(By.ID, "login_pwd").send_keys("1018")
+    driver.find_element(By.ID, "login_pwd").send_keys(password)
     print("入力完了")
     driver.find_element_by_xpath("//*[@id='btn_login']").click()
     
