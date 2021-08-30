@@ -61,7 +61,7 @@ def reserve():
     driver.get(url)
 
     #接種券番号、パスワードを入力
-    f = open('config.json','r')
+    f = open('config.json','r',encoding="utf-8")
     j=json.load(f)
     ticket_number=j["ID"]["number"]
     password=j["ID"]["pass"]
@@ -93,7 +93,7 @@ def reserve():
 
 
         #予約する日付取得
-        f = open('config.json','r')
+        f = open('config.json','r',encoding="utf-8")
         j=json.load(f)
         date_year=int(j["date"]["year"])
         date_list=j["date"]["date_list"]
@@ -134,7 +134,7 @@ def reserve():
             )
 
             #会場コードを取得
-            f = open('config.json','r')
+            f = open('config.json','r',encoding="utf-8")
             j=json.load(f)
             place_list=j["date"]["place"]
             f.close()
@@ -228,7 +228,7 @@ def reserve():
                     driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
 
                     #時間取得
-                    f = open('config.json','r')
+                    f = open('config.json','r',encoding="utf-8")
                     j=json.load(f)
                     time_list=j["date"]["time_list"]
                     f.close()
