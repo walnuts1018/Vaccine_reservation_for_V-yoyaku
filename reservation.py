@@ -21,6 +21,9 @@ import platform
 
 CHROMEDRIVER = "/usr/bin/chromedriver"
 WEB_WAIT_TIME = 10
+RETRY_MAX_CNT = 100
+RETRY_WAIT_TIME = 60
+
  
 def get_driver(init_flg):
      
@@ -90,7 +93,26 @@ def reserve():
         #予約・変更するボタン
         driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
         print("予約ページ遷移完了")
+        
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        )
 
+        driver.execute_script("window.scrollTo(0,870);")
+        #接種会場を選択ボタン
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
+        print("接種会場ページ遷移完了")
+
+        time.sleep(1)
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        )
+        
+        for retry_cnt in range(RETRY_MAX_CNT):
+            if SelectMedical(driver):
+                break
+            time.sleep(RETRY_WAIT_TIME)
 
         #予約する日付取得
         f = open('config.json','r',encoding="utf-8")
@@ -101,37 +123,6 @@ def reserve():
 
         n=0
         for i in date_list:
-
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
-            )
-
-            driver.execute_script("window.scrollTo(0,870);")
-            #接種会場を選択ボタン
-            time.sleep(1)
-            driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
-            print("接種会場ページ遷移完了")
-
-            time.sleep(1)
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
-            )
-
-            #検索ボタン
-            driver.find_element(By.ID, "btn_search_medical").click()
-
-            #多分検索処理？
-            element = driver.find_element(By.ID, "btn_search_medical")
-            actions = ActionChains(driver)
-            actions.move_to_element(element).perform()
-            element = driver.find_element(By.CSS_SELECTOR, "body")
-            actions = ActionChains(driver)
-            driver.execute_script("window.scrollTo(0,0)")
-            print("検索完了")
-
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-            expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
-            )
 
             #会場コードを取得
             f = open('config.json','r',encoding="utf-8")
@@ -301,6 +292,30 @@ def reserve():
         
     # ブラウザ停止
     driver.quit()
+    
+def SelectMedical(driver):
+
+    #検索ボタン
+    driver.find_element(By.ID, "btn_search_medical").click()
+
+    #多分検索処理？
+    element = driver.find_element(By.ID, "btn_search_medical")
+    actions = ActionChains(driver)
+    actions.move_to_element(element).perform()
+    element = driver.find_element(By.CSS_SELECTOR, "body")
+    actions = ActionChains(driver)
+    driver.execute_script("window.scrollTo(0,0)")
+    print("検索完了")
+
+    try:
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
+        )
+    except:
+        #検索結果に出てこない = 空きがない
+        return False
+    
+    return True
 
 """     
     pf = platform.system()
