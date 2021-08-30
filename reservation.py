@@ -20,6 +20,7 @@ import subprocess
 import platform
 
 CHROMEDRIVER = "/usr/bin/chromedriver"
+WEB_WAIT_TIME = 10
  
 def get_driver(init_flg):
      
@@ -67,7 +68,7 @@ def reserve():
     f.close()
     print("login情報取得完了")
 
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
     expected_conditions.presence_of_element_located((By.ID, "login_id"))
     )
 
@@ -81,7 +82,7 @@ def reserve():
     driver.find_element_by_xpath("//*[@id='btn_login']").click()
     
 
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
     expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
     )
     if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
@@ -101,7 +102,7 @@ def reserve():
         n=0
         for i in date_list:
 
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
             )
 
@@ -112,7 +113,7 @@ def reserve():
             print("接種会場ページ遷移完了")
 
             time.sleep(1)
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
             )
 
@@ -128,7 +129,7 @@ def reserve():
             driver.execute_script("window.scrollTo(0,0)")
             print("検索完了")
 
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
             expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
             )
 
@@ -184,7 +185,7 @@ def reserve():
 
                 selmonth=month_i-now_month
 
-                element = WebDriverWait(driver, 10).until(
+                element = WebDriverWait(driver, WEB_WAIT_TIME).until(
                 expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
                 )
                 #月選択
@@ -205,7 +206,7 @@ def reserve():
                 print(week_num,date_num_i)
 
                 time.sleep(2)
-                element = WebDriverWait(driver, 10).until(
+                element = WebDriverWait(driver, WEB_WAIT_TIME).until(
                 expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
                 )
                 if len(driver.find_elements(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]")) > 0:
@@ -234,7 +235,7 @@ def reserve():
 
                     n_time=0
                     for i in time_list:
-                        element = WebDriverWait(driver, 10).until(
+                        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
                         expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
                         )
                         time.sleep(1)
@@ -266,7 +267,7 @@ def reserve():
 
                             #予約を確定する
                             time.sleep(3)
-                            element = WebDriverWait(driver, 10).until(
+                            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
                             expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
                             )
                             driver.execute_script("window.scrollTo(0,1100);")
@@ -274,7 +275,7 @@ def reserve():
                             #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
                             driver.find_element(By.ID, "btn_reservation_entry").click()
 
-                            element = WebDriverWait(driver, 10).until(
+                            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
                             expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
                             )
                             time.sleep(3)
