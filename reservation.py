@@ -182,9 +182,16 @@ def reserve():
                 print(week_num,date_num_i)
 
                 time.sleep(2)
-                element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-                expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
-                )
+                
+                try:
+                    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+                    expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
+                    )
+                except:
+                    #指定した日付が空欄だった場合
+                    n=n+1
+                    continue
+                    
                 if len(driver.find_elements(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]")) > 0:
                     res_mark_text=driver.find_element(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]").text
 
