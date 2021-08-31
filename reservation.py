@@ -24,20 +24,6 @@ WEB_WAIT_TIME = 10
 RETRY_MAX_CNT = 100
 RETRY_WAIT_TIME = 60
 
- 
-def get_driver(init_flg):
-     
-    #　ヘッドレスモードでブラウザを起動
-    options = Options()
-    options.add_argument('--headless')
- 
- 
-    # ブラウザーを起動
-    driver = webdriver.Chrome(CHROMEDRIVER, options=options)
-     
-    return driver
-
-
 def ntp_now(server, port = 123):
 
     with socket(AF_INET, SOCK_DGRAM) as s:
