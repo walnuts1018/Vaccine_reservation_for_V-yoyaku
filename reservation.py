@@ -168,6 +168,7 @@ def reserve():
 
                 for i in range(selmonth):
                     driver.find_element(By.CSS_SELECTOR, "#calendar .fc-right .fa").click()
+                now_month = month_i
 
                 #ここの番号1から始まるので注意
                 def get_nth_week2(year, month, day, firstweekday=0):
@@ -184,7 +185,7 @@ def reserve():
                 time.sleep(2)
                 
                 try:
-                    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+                    element = WebDriverWait(driver, 1).until(
                     expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
                     )
                 except:
