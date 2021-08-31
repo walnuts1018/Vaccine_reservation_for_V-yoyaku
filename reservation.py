@@ -154,7 +154,6 @@ def reserve():
             if td.days < 1:
                 print("configの日付が古いです")
                 n=n+1
-                driver.refresh()
                 continue
 
             #本来20日(余裕をもって21にしてみる)
@@ -197,7 +196,6 @@ def reserve():
 
                 if res_mark_text == "×":
                     n=n+1
-                    driver.refresh()
                     continue
 
                 else:
@@ -258,7 +256,6 @@ def reserve():
                             time.sleep(3)
                             
                             if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
-                                driver.refresh()
                                 break
                                 
                             else:
@@ -269,7 +266,6 @@ def reserve():
                     continue
             else:
                 n=n+1
-                driver.refresh()
                 continue
 
     else:
