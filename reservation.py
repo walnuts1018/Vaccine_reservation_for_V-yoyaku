@@ -197,12 +197,12 @@ def reserve():
                     res_mark_text=driver.find_element(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]").text
 
                 else:
-                    res_mark_text="×"
-
+                    n=n+1
+                    continue
                 
                 print(res_mark_text)
 
-                if res_mark_text == "×":
+                if res_mark_text != "〇" and res_mark_text != "△":
                     n=n+1
                     continue
 
