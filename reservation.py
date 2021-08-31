@@ -34,125 +34,70 @@ def ntp_now(server, port = 123):
     else:
         None
 
-def reserve():
+def ChkTimeTable(driver):
 
-    url = "https://v-yoyaku.jp/341002-hiroshima"
-     
-    #　ヘッドレスモードでブラウザを起動
-    options = Options()
-    #GUIで実行を確認する場合下の一行をコメントアウト
-    options.add_argument('--headless')
- 
-    # ブラウザーを起動
-    driver = webdriver.Chrome(CHROMEDRIVER, options=options)
-     
-    # urlにアクセス
-    driver.get(url)
-
-    #接種券番号、パスワードを入力
+    #時間取得
     f = open('config.json','r',encoding="utf-8")
     j=json.load(f)
-    ticket_number=j["ID"]["number"]
-    password=j["ID"]["pass"]
+    time_list=j["date"]["time_list"]
     f.close()
-    print("login情報取得完了")
 
-    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-    expected_conditions.presence_of_element_located((By.ID, "login_id"))
-    )
-
-    driver.execute_script("window.scrollTo(0,2900);")
-    time.sleep(1)
-    #driver.find_element(By.ID, "login_id").click()
-    driver.find_element_by_xpath("//*[@id='login_id']").send_keys(ticket_number)
-    #driver.find_element(By.ID, "login_pwd").click()
-    driver.find_element(By.ID, "login_pwd").send_keys(password)
-    print("入力完了")
-    driver.find_element_by_xpath("//*[@id='btn_login']").click()
-    
-
-    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-    expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
-    )
-    if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
-        print("ログイン完了")
-        #予約・変更するボタン
-        driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
-        print("予約ページ遷移完了")
-        
+    n_time=0
+    for i in time_list:
         element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
         )
-
-        driver.execute_script("window.scrollTo(0,870);")
-        #接種会場を選択ボタン
         time.sleep(1)
-        driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
-        print("接種会場ページ遷移完了")
+        start_hour=driver.find_element(By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span").text
+        time_num_i=(time_list[n_time])
+        hour_i=int(time_num_i[0:2])
+        min_i=int(time_num_i[2:4])
+        migikara_num=round(min_i/15)+1
+        uekara_num=hour_i-int(start_hour)+1
 
-        time.sleep(1)
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
-        )
-        
-        for retry_cnt in range(RETRY_MAX_CNT):
-            if SelectMedical(driver):
+        if uekara_num < 1:
+            continue
+
+        if len(driver.find_elements(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div")) > 0:
+            res_mark_text_time=driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").text
+
+        else:
+            res_mark_text_time="×"
+
+
+        print(res_mark_text_time)
+
+        if res_mark_text_time == "×":
+            n_time=n_time+1
+            continue
+
+        else:
+            driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").click() 
+
+            #予約を確定する
+            time.sleep(3)
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
+            )
+            driver.execute_script("window.scrollTo(0,1100);")
+
+            #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
+            driver.find_element(By.ID, "btn_reservation_entry").click()
+
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
+            )
+            time.sleep(3)
+            
+            if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
                 break
-            time.sleep(RETRY_WAIT_TIME)
+                
+            else:
+                print("予約が完了しました")
+                driver.quit()
+                return True
 
-        #会場コードを取得
-        f = open('config.json','r',encoding="utf-8")
-        j=json.load(f)
-        place_list=j["date"]["place"]
-        f.close()
-        place_page=int(list(str(place_list[0]))[0])
-        place_num=int(list(str(place_list[0]))[1])
-
-
-        print("番号取得完了")
-
-        #ページ選択
-        for i in range(place_page):
-            driver.find_element(By.LINK_TEXT, "次").click()
-
-        #会場番号選択
-        driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
-        #会場確定
-        driver.find_element(By.ID, "btn_select_medical").click()
-
-        if ChkCalendar(driver):
-            exit()
-
-    else:
-        print("ログインエラーまたはメンテナンス中です")
-    
-        
-    # ブラウザ停止
-    driver.quit()
-    
-def SelectMedical(driver):
-
-    #検索ボタン
-    driver.find_element(By.ID, "btn_search_medical").click()
-
-    #多分検索処理？
-    element = driver.find_element(By.ID, "btn_search_medical")
-    actions = ActionChains(driver)
-    actions.move_to_element(element).perform()
-    element = driver.find_element(By.CSS_SELECTOR, "body")
-    actions = ActionChains(driver)
-    driver.execute_script("window.scrollTo(0,0)")
-    print("検索完了")
-
-    try:
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-        expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
-        )
-    except:
-        #検索結果に出てこない = 空きがない
-        return False
-    
-    return True
+    return False
 
 def ChkCalendar(driver):
 
@@ -256,70 +201,125 @@ def ChkCalendar(driver):
 
     return False
 
-def ChkTimeTable(driver):
+def SelectMedical(driver):
 
-    #時間取得
+    #検索ボタン
+    driver.find_element(By.ID, "btn_search_medical").click()
+
+    #多分検索処理？
+    element = driver.find_element(By.ID, "btn_search_medical")
+    actions = ActionChains(driver)
+    actions.move_to_element(element).perform()
+    element = driver.find_element(By.CSS_SELECTOR, "body")
+    actions = ActionChains(driver)
+    driver.execute_script("window.scrollTo(0,0)")
+    print("検索完了")
+
+    try:
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
+        )
+    except:
+        #検索結果に出てこない = 空きがない
+        return False
+    
+    return True
+
+def reserve():
+
+    url = "https://v-yoyaku.jp/341002-hiroshima"
+     
+    #　ヘッドレスモードでブラウザを起動
+    options = Options()
+    #GUIで実行を確認する場合下の一行をコメントアウト
+    options.add_argument('--headless')
+ 
+    # ブラウザーを起動
+    driver = webdriver.Chrome(CHROMEDRIVER, options=options)
+     
+    # urlにアクセス
+    driver.get(url)
+
+    #接種券番号、パスワードを入力
     f = open('config.json','r',encoding="utf-8")
     j=json.load(f)
-    time_list=j["date"]["time_list"]
+    ticket_number=j["ID"]["number"]
+    password=j["ID"]["pass"]
     f.close()
+    print("login情報取得完了")
 
-    n_time=0
-    for i in time_list:
+    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+    expected_conditions.presence_of_element_located((By.ID, "login_id"))
+    )
+
+    driver.execute_script("window.scrollTo(0,2900);")
+    time.sleep(1)
+    #driver.find_element(By.ID, "login_id").click()
+    driver.find_element_by_xpath("//*[@id='login_id']").send_keys(ticket_number)
+    #driver.find_element(By.ID, "login_pwd").click()
+    driver.find_element(By.ID, "login_pwd").send_keys(password)
+    print("入力完了")
+    driver.find_element_by_xpath("//*[@id='btn_login']").click()
+    
+
+    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+    expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
+    )
+    if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
+        print("ログイン完了")
+        #予約・変更するボタン
+        driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
+        print("予約ページ遷移完了")
+        
         element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-        expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
         )
+
+        driver.execute_script("window.scrollTo(0,870);")
+        #接種会場を選択ボタン
         time.sleep(1)
-        start_hour=driver.find_element(By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span").text
-        time_num_i=(time_list[n_time])
-        hour_i=int(time_num_i[0:2])
-        min_i=int(time_num_i[2:4])
-        migikara_num=round(min_i/15)+1
-        uekara_num=hour_i-int(start_hour)+1
+        driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
+        print("接種会場ページ遷移完了")
 
-        if uekara_num < 1:
-            continue
-
-        if len(driver.find_elements(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div")) > 0:
-            res_mark_text_time=driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").text
-
-        else:
-            res_mark_text_time="×"
-
-
-        print(res_mark_text_time)
-
-        if res_mark_text_time == "×":
-            n_time=n_time+1
-            continue
-
-        else:
-            driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").click() 
-
-            #予約を確定する
-            time.sleep(3)
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-            expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
-            )
-            driver.execute_script("window.scrollTo(0,1100);")
-
-            #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
-            driver.find_element(By.ID, "btn_reservation_entry").click()
-
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-            expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
-            )
-            time.sleep(3)
-            
-            if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
+        time.sleep(1)
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        )
+        
+        for retry_cnt in range(RETRY_MAX_CNT):
+            if SelectMedical(driver):
                 break
-                
-            else:
-                print("予約が完了しました")
-                driver.quit()
-                return True
+            time.sleep(RETRY_WAIT_TIME)
 
-    return False
+        #会場コードを取得
+        f = open('config.json','r',encoding="utf-8")
+        j=json.load(f)
+        place_list=j["date"]["place"]
+        f.close()
+        place_page=int(list(str(place_list[0]))[0])
+        place_num=int(list(str(place_list[0]))[1])
+
+
+        print("番号取得完了")
+
+        #ページ選択
+        for i in range(place_page):
+            driver.find_element(By.LINK_TEXT, "次").click()
+
+        #会場番号選択
+        driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
+        #会場確定
+        driver.find_element(By.ID, "btn_select_medical").click()
+
+        if ChkCalendar(driver):
+            exit()
+
+    else:
+        print("ログインエラーまたはメンテナンス中です")
+    
+        
+    # ブラウザ停止
+    driver.quit()
 
 """     
     pf = platform.system()
