@@ -210,66 +210,8 @@ def reserve():
                     #日付クリック
                     driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
 
-                    #時間取得
-                    f = open('config.json','r',encoding="utf-8")
-                    j=json.load(f)
-                    time_list=j["date"]["time_list"]
-                    f.close()
-
-                    n_time=0
-                    for i in time_list:
-                        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-                        expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
-                        )
-                        time.sleep(1)
-                        start_hour=driver.find_element(By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span").text
-                        time_num_i=(time_list[n_time])
-                        hour_i=int(time_num_i[0:2])
-                        min_i=int(time_num_i[2:4])
-                        migikara_num=round(min_i/15)+1
-                        uekara_num=hour_i-int(start_hour)+1
-
-                        if uekara_num < 1:
-                            continue
-
-                        if len(driver.find_elements(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div")) > 0:
-                            res_mark_text_time=driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").text
-
-                        else:
-                            res_mark_text_time="×"
-
-                
-                        print(res_mark_text_time)
-
-                        if res_mark_text_time == "×":
-                            n_time=n_time+1
-                            continue
-
-                        else:
-                            driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").click() 
-
-                            #予約を確定する
-                            time.sleep(3)
-                            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-                            expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
-                            )
-                            driver.execute_script("window.scrollTo(0,1100);")
-
-                            #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
-                            driver.find_element(By.ID, "btn_reservation_entry").click()
-
-                            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-                            expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
-                            )
-                            time.sleep(3)
-                            
-                            if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
-                                break
-                                
-                            else:
-                                print("予約が完了しました")
-                                driver.quit()
-                                exit()
+                    if ChkTimeTable(driver):
+                        exit()
                     n=n+1
                     continue
             else:
@@ -306,6 +248,71 @@ def SelectMedical(driver):
         return False
     
     return True
+
+def ChkTimeTable(driver):
+
+    #時間取得
+    f = open('config.json','r',encoding="utf-8")
+    j=json.load(f)
+    time_list=j["date"]["time_list"]
+    f.close()
+
+    n_time=0
+    for i in time_list:
+        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
+        )
+        time.sleep(1)
+        start_hour=driver.find_element(By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span").text
+        time_num_i=(time_list[n_time])
+        hour_i=int(time_num_i[0:2])
+        min_i=int(time_num_i[2:4])
+        migikara_num=round(min_i/15)+1
+        uekara_num=hour_i-int(start_hour)+1
+
+        if uekara_num < 1:
+            continue
+
+        if len(driver.find_elements(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div")) > 0:
+            res_mark_text_time=driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").text
+
+        else:
+            res_mark_text_time="×"
+
+
+        print(res_mark_text_time)
+
+        if res_mark_text_time == "×":
+            n_time=n_time+1
+            continue
+
+        else:
+            driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").click() 
+
+            #予約を確定する
+            time.sleep(3)
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
+            )
+            driver.execute_script("window.scrollTo(0,1100);")
+
+            #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
+            driver.find_element(By.ID, "btn_reservation_entry").click()
+
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
+            )
+            time.sleep(3)
+            
+            if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
+                break
+                
+            else:
+                print("予約が完了しました")
+                driver.quit()
+                return True
+
+    return False
 
 """     
     pf = platform.system()
