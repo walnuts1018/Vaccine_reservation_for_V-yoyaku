@@ -100,6 +100,34 @@ def reserve():
                 break
             time.sleep(RETRY_WAIT_TIME)
 
+        #会場コードを取得
+        f = open('config.json','r',encoding="utf-8")
+        j=json.load(f)
+        place_list=j["date"]["place"]
+        f.close()
+        place_page=int(list(str(place_list[0]))[0])
+        place_num=int(list(str(place_list[0]))[1])
+
+
+        print("番号取得完了")
+
+        #ページ選択
+        for i in range(place_page):
+            driver.find_element(By.LINK_TEXT, "次").click()
+
+        #会場番号選択
+        driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
+        #会場確定
+        driver.find_element(By.ID, "btn_select_medical").click()
+
+        #gennzai日付取得
+        now_datetime=ntp_now('ntp.nict.jp')
+        now_time=str(now_datetime)
+        now_year=int(now_time[0:4])
+        now_month=int(now_time[5:7])
+        now_date=int(now_time[8:10])
+        print(now_datetime)
+
         #予約する日付取得
         f = open('config.json','r',encoding="utf-8")
         j=json.load(f)
@@ -109,34 +137,6 @@ def reserve():
 
         n=0
         for i in date_list:
-
-            #会場コードを取得
-            f = open('config.json','r',encoding="utf-8")
-            j=json.load(f)
-            place_list=j["date"]["place"]
-            f.close()
-            place_page=int(list(str(place_list[0]))[0])
-            place_num=int(list(str(place_list[0]))[1])
-
-
-            print("番号取得完了")
-
-            #ページ選択
-            for i in range(place_page):
-                driver.find_element(By.LINK_TEXT, "次").click()
-
-            #会場番号選択
-            driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
-            #会場確定
-            driver.find_element(By.ID, "btn_select_medical").click()
-
-            #gennzai日付取得
-            now_datetime=ntp_now('ntp.nict.jp')
-            now_time=str(now_datetime)
-            now_year=int(now_time[0:4])
-            now_month=int(now_time[5:7])
-            now_date=int(now_time[8:10])
-            print(now_datetime)
 
             #予約する日付
             date_num_i=(date_list[n])
