@@ -120,103 +120,8 @@ def reserve():
         #会場確定
         driver.find_element(By.ID, "btn_select_medical").click()
 
-        #gennzai日付取得
-        now_datetime=ntp_now('ntp.nict.jp')
-        now_time=str(now_datetime)
-        now_year=int(now_time[0:4])
-        now_month=int(now_time[5:7])
-        now_date=int(now_time[8:10])
-        print(now_datetime)
-
-        #予約する日付取得
-        f = open('config.json','r',encoding="utf-8")
-        j=json.load(f)
-        date_year=int(j["date"]["year"])
-        date_list=j["date"]["date_list"]
-        f.close()
-
-        n=0
-        for i in date_list:
-
-            #予約する日付
-            date_num_i=(date_list[n])
-            print(date_num_i)
-            month_i=int(date_num_i[0:2])
-            date_i=int(date_num_i[2:4])
-            print(month_i,date_i)
-
-            #予約する日時のdatetime作成
-            res_datetime_str = str(date_year)+"-"+str(month_i)+"-"+str(date_i)+" 00:00:01"
-            res_datetime = datetime.strptime(res_datetime_str, '%Y-%m-%d %H:%M:%S')
-            #予約可能期間か確認
-            td=res_datetime-now_datetime
-            print("予約日-本日=",td.days , "20以上なら予約処理されません")
-            if td.days < 1:
-                print("configの日付が古いです")
-                n=n+1
-                continue
-
-            #本来20日(余裕をもって21にしてみる)
-            if int(td.days) <=21:
-
-                selmonth=month_i-now_month
-
-                element = WebDriverWait(driver, WEB_WAIT_TIME).until(
-                expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
-                )
-                #月選択
-
-                for i in range(selmonth):
-                    driver.find_element(By.CSS_SELECTOR, "#calendar .fc-right .fa").click()
-                now_month = month_i
-
-                #ここの番号1から始まるので注意
-                def get_nth_week2(year, month, day, firstweekday=0):
-                    first_dow = calendar.monthrange(year, month)[0]
-                    offset = (first_dow - firstweekday) % 7
-                    return (day + offset - 1) // 7 + 1,calendar.weekday(year, month, day)
-
-                res_num_tuple=get_nth_week2(date_year,month_i,date_i)
-
-                week_num=res_num_tuple[0]
-                date_num_i=res_num_tuple[1]+1
-                print(week_num,date_num_i)
-
-                time.sleep(2)
-                
-                try:
-                    element = WebDriverWait(driver, 1).until(
-                    expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
-                    )
-                except:
-                    #指定した日付が空欄だった場合
-                    n=n+1
-                    continue
-                    
-                if len(driver.find_elements(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]")) > 0:
-                    res_mark_text=driver.find_element(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]").text
-
-                else:
-                    n=n+1
-                    continue
-                
-                print(res_mark_text)
-
-                if res_mark_text != "〇" and res_mark_text != "△":
-                    n=n+1
-                    continue
-
-                else:
-                    #日付クリック
-                    driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
-
-                    if ChkTimeTable(driver):
-                        exit()
-                    n=n+1
-                    continue
-            else:
-                n=n+1
-                continue
+        if ChkCalendar(driver):
+            exit()
 
     else:
         print("ログインエラーまたはメンテナンス中です")
@@ -248,6 +153,108 @@ def SelectMedical(driver):
         return False
     
     return True
+
+def ChkCalendar(driver):
+
+    #gennzai日付取得
+    now_datetime=ntp_now('ntp.nict.jp')
+    now_time=str(now_datetime)
+    now_year=int(now_time[0:4])
+    now_month=int(now_time[5:7])
+    now_date=int(now_time[8:10])
+    print(now_datetime)
+
+    #予約する日付取得
+    f = open('config.json','r',encoding="utf-8")
+    j=json.load(f)
+    date_year=int(j["date"]["year"])
+    date_list=j["date"]["date_list"]
+    f.close()
+
+    n=0
+    for i in date_list:
+
+        #予約する日付
+        date_num_i=(date_list[n])
+        print(date_num_i)
+        month_i=int(date_num_i[0:2])
+        date_i=int(date_num_i[2:4])
+        print(month_i,date_i)
+
+        #予約する日時のdatetime作成
+        res_datetime_str = str(date_year)+"-"+str(month_i)+"-"+str(date_i)+" 00:00:01"
+        res_datetime = datetime.strptime(res_datetime_str, '%Y-%m-%d %H:%M:%S')
+        #予約可能期間か確認
+        td=res_datetime-now_datetime
+        print("予約日-本日=",td.days , "20以上なら予約処理されません")
+        if td.days < 1:
+            print("configの日付が古いです")
+            n=n+1
+            continue
+
+        #本来20日(余裕をもって21にしてみる)
+        if int(td.days) <=21:
+
+            selmonth=month_i-now_month
+
+            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
+            )
+            #月選択
+
+            for i in range(selmonth):
+                driver.find_element(By.CSS_SELECTOR, "#calendar .fc-right .fa").click()
+            now_month = month_i
+
+            #ここの番号1から始まるので注意
+            def get_nth_week2(year, month, day, firstweekday=0):
+                first_dow = calendar.monthrange(year, month)[0]
+                offset = (first_dow - firstweekday) % 7
+                return (day + offset - 1) // 7 + 1,calendar.weekday(year, month, day)
+
+            res_num_tuple=get_nth_week2(date_year,month_i,date_i)
+
+            week_num=res_num_tuple[0]
+            date_num_i=res_num_tuple[1]+1
+            print(week_num,date_num_i)
+
+            time.sleep(2)
+            
+            try:
+                element = WebDriverWait(driver, 1).until(
+                expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
+                )
+            except:
+                #指定した日付が空欄だった場合
+                n=n+1
+                continue
+                
+            if len(driver.find_elements(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]")) > 0:
+                res_mark_text=driver.find_element(By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]").text
+
+            else:
+                n=n+1
+                continue
+            
+            print(res_mark_text)
+
+            if res_mark_text != "〇" and res_mark_text != "△":
+                n=n+1
+                continue
+
+            else:
+                #日付クリック
+                driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
+
+                if ChkTimeTable(driver):
+                    return True
+                n=n+1
+                continue
+        else:
+            n=n+1
+            continue
+
+    return False
 
 def ChkTimeTable(driver):
 
