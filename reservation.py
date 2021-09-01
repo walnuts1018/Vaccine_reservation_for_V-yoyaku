@@ -345,7 +345,7 @@ def reserve():
 
 
 schedule.every(1).hour.do(reserve)
-schedule.every().day.at("12:00").do(reserve)
+schedule.every().day.at("00:00").do(reserve)
 
 
 reserve()
