@@ -191,7 +191,7 @@ def chk_calendar(driver):
                 #日付クリック
                 driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
 
-                if ChkTimeTable(driver):
+                if chk_time_table(driver):
                     return True
                 n=n+1
                 continue
@@ -287,7 +287,7 @@ def reserve():
         )
         
         for retry_cnt in range(RETRY_MAX_CNT):
-            if SelectMedical(driver):
+            if select_medical(driver):
                 break
             time.sleep(RETRY_WAIT_TIME)
 
@@ -311,7 +311,7 @@ def reserve():
         #会場確定
         driver.find_element(By.ID, "btn_select_medical").click()
 
-        if ChkCalendar(driver):
+        if chk_calendar(driver):
             exit()
 
     else:
