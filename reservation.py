@@ -34,7 +34,7 @@ def ntp_now(server, port = 123):
     else:
         None
 
-def ChkTimeTable(driver):
+def chk_time_table(driver):
 
     #時間取得
     f = open('config.json','r',encoding="utf-8")
@@ -99,7 +99,7 @@ def ChkTimeTable(driver):
 
     return False
 
-def ChkCalendar(driver):
+def chk_calendar(driver):
 
     #gennzai日付取得
     now_datetime=ntp_now('ntp.nict.jp')
@@ -201,7 +201,7 @@ def ChkCalendar(driver):
 
     return False
 
-def SelectMedical(driver):
+def select_medical(driver):
 
     #検索ボタン
     driver.find_element(By.ID, "btn_search_medical").click()
