@@ -18,8 +18,8 @@ import calendar
 import schedule
 import subprocess
 import platform
+import chromedriver_binary
 
-CHROMEDRIVER = "/usr/bin/chromedriver"
 WEB_WAIT_TIME = 10
 RETRY_MAX_CNT = 100
 RETRY_WAIT_TIME = 60
@@ -235,7 +235,7 @@ def reserve():
     options.add_argument('--headless')
  
     # ブラウザーを起動
-    driver = webdriver.Chrome(CHROMEDRIVER, options=options)
+    driver = webdriver.Chrome(options=options)
      
     # urlにアクセス
     driver.get(url)
