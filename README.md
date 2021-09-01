@@ -4,10 +4,10 @@
 ## ■インストール
 python3をインストール(テスト環境は3.8)
 
-seleniumをインストール
+ライブラリをインストール
 
 ```
-sudo apt install python3-selenium
+sudo pip install -r requirements.txt
 ```
 
 ## ■使用方法
