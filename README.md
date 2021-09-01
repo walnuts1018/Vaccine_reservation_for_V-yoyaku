@@ -1,5 +1,5 @@
 # Vaccine_reservation_for_V-yoyaku
-  新型コロナウイルスワクチン予約システム V-yoyaku (https://v-yoyaku.jp/)を自動化するプログラムです。
+  新型コロナウイルスワクチン予約システム V-yoyaku (https://v-yoyaku.jp/) を自動化するプログラムです。
   とりあえず広島県において動作確認をしております。
 
 ## ■インストール
