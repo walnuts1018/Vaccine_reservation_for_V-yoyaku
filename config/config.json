@@ -10,7 +10,7 @@
     "interval":60,
     "limit":100,
     "medical":{
-        "name":["集団接種会場A","集団接種会場B"]
+        "name":["集団接種会場A","集団接種会場B"],
         "index":[0,0]
     },
     "date":{
