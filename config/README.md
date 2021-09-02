@@ -1,5 +1,13 @@
 # config.json 記述方法
 
+## headless
+
+ブラウザを非表示状態で実行する場合は```true```を、表示状態で実行する場合は```false```を記述してください。
+
+```json
+"headless":true,
+```
+
 ## url
 
 ログインページのURLを記述してください。
