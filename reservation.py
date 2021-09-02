@@ -20,10 +20,6 @@ import subprocess
 import platform
 import chromedriver_binary
 
-WEB_WAIT_TIME = 10
-RETRY_MAX_CNT = 100
-RETRY_WAIT_TIME = 60
-
 def ntp_now(server, port = 123):
 
     with socket(AF_INET, SOCK_DGRAM) as s:
@@ -37,14 +33,11 @@ def ntp_now(server, port = 123):
 def chk_time_table(driver):
 
     #時間取得
-    f = open('config.json','r',encoding="utf-8")
-    j=json.load(f)
-    time_list=j["date"]["time_list"]
-    f.close()
+    time_list=config["date"]["time_list"]
 
     n_time=0
     for i in time_list:
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        element = WebDriverWait(driver, config["timeout"]).until(
         expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
         )
         time.sleep(1)
@@ -76,7 +69,7 @@ def chk_time_table(driver):
 
             #予約を確定する
             time.sleep(3)
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
             )
             driver.execute_script("window.scrollTo(0,1100);")
@@ -84,7 +77,7 @@ def chk_time_table(driver):
             #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
             driver.find_element(By.ID, "btn_reservation_entry").click()
 
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
             )
             time.sleep(3)
@@ -110,11 +103,8 @@ def chk_calendar(driver):
     print(now_datetime)
 
     #予約する日付取得
-    f = open('config.json','r',encoding="utf-8")
-    j=json.load(f)
-    date_year=int(j["date"]["year"])
-    date_list=j["date"]["date_list"]
-    f.close()
+    date_year=int(config["date"]["year"])
+    date_list=config["date"]["date_list"]
 
     n=0
     for i in date_list:
@@ -142,7 +132,7 @@ def chk_calendar(driver):
 
             selmonth=month_i-now_month
 
-            element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+            element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
             )
             #月選択
@@ -216,7 +206,7 @@ def select_medical(driver):
     print("検索完了")
 
     try:
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        element = WebDriverWait(driver, config["timeout"]).until(
         expected_conditions.presence_of_element_located((By.ID, "search_medical_table_radio_0"))
         )
     except:
@@ -226,29 +216,25 @@ def select_medical(driver):
     return True
 
 def reserve():
-
-    url = "https://v-yoyaku.jp/341002-hiroshima"
      
     #　ヘッドレスモードでブラウザを起動
     options = Options()
     #GUIで実行を確認する場合下の一行をコメントアウト
-    options.add_argument('--headless')
+    if config["headless"]:
+        options.add_argument('--headless')
  
     # ブラウザーを起動
     driver = webdriver.Chrome(options=options)
      
     # urlにアクセス
-    driver.get(url)
+    driver.get(config["url"])
 
     #接種券番号、パスワードを入力
-    f = open('config.json','r',encoding="utf-8")
-    j=json.load(f)
-    ticket_number=j["ID"]["number"]
-    password=j["ID"]["pass"]
-    f.close()
+    ticket_number=config["account"]["number"]
+    password=config["account"]["pass"]
     print("login情報取得完了")
 
-    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+    element = WebDriverWait(driver, config["timeout"]).until(
     expected_conditions.presence_of_element_located((By.ID, "login_id"))
     )
 
@@ -262,7 +248,7 @@ def reserve():
     driver.find_element_by_xpath("//*[@id='btn_login']").click()
     
 
-    element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+    element = WebDriverWait(driver, config["timeout"]).until(
     expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
     )
     if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
@@ -271,7 +257,7 @@ def reserve():
         driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
         print("予約ページ遷移完了")
         
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        element = WebDriverWait(driver, config["timeout"]).until(
         expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
         )
 
@@ -282,20 +268,17 @@ def reserve():
         print("接種会場ページ遷移完了")
 
         time.sleep(1)
-        element = WebDriverWait(driver, WEB_WAIT_TIME).until(
+        element = WebDriverWait(driver, config["timeout"]).until(
         expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
         )
         
-        for retry_cnt in range(RETRY_MAX_CNT):
+        for retry_cnt in range(config["limit"]):
             if select_medical(driver):
                 break
-            time.sleep(RETRY_WAIT_TIME)
+            time.sleep(config["interval"])
 
         #会場コードを取得
-        f = open('config.json','r',encoding="utf-8")
-        j=json.load(f)
-        place_list=j["date"]["place"]
-        f.close()
+        place_list=config["medical"]["index"]
         place_page=int(list(str(place_list[0]))[0])
         place_num=int(list(str(place_list[0]))[1])
 
@@ -347,6 +330,9 @@ def reserve():
 schedule.every(1).hour.do(reserve)
 schedule.every().day.at("00:00").do(reserve)
 
+f = open('config.json','r',encoding="utf-8")
+config=json.load(f)
+f.close()
 
 reserve()
 while True:
