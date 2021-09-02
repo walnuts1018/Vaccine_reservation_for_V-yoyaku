@@ -289,11 +289,9 @@ def reserve():
                     break
                 time.sleep(config["interval"])
 
-            #会場コードを取得
-            place_list=medical["index"]
-            place_page=int(list(str(place_list[0]))[0])
-            place_num=int(list(str(place_list[0]))[1])
-
+            #会場indexを取得
+            place_page=int(medical["index"]/10)
+            place_num=medical["index"]-(place_page*10)
 
             print("番号取得完了")
 
@@ -342,7 +340,7 @@ def reserve():
 schedule.every(1).hour.do(reserve)
 schedule.every().day.at("00:00").do(reserve)
 
-f = open('config.json','r',encoding="utf-8")
+f = open('config/config.json','r',encoding="utf-8")
 config=json.load(f)
 f.close()
 
