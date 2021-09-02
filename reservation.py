@@ -267,35 +267,47 @@ def reserve():
         driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
         print("接種会場ページ遷移完了")
 
-        time.sleep(1)
         element = WebDriverWait(driver, config["timeout"]).until(
-        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        expected_conditions.presence_of_element_located((By.ID, "reserve_status_check"))
         )
-        
-        for retry_cnt in range(config["limit"]):
-            if select_medical(driver):
-                break
-            time.sleep(config["interval"])
+        driver.find_element(By.ID, "reserve_status_check").click()
 
-        #会場コードを取得
-        place_list=config["medical"]["index"]
-        place_page=int(list(str(place_list[0]))[0])
-        place_num=int(list(str(place_list[0]))[1])
+        for medical in config["medical"]:
+            #会場名を入力
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.ID, "medical_institution_name"))
+            )
+            driver.find_element(By.ID, "medical_institution_name").send_keys(medical["name"])
+
+            time.sleep(1)
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+            )
+            
+            for retry_cnt in range(config["limit"]):
+                if select_medical(driver):
+                    break
+                time.sleep(config["interval"])
+
+            #会場コードを取得
+            place_list=medical["index"]
+            place_page=int(list(str(place_list[0]))[0])
+            place_num=int(list(str(place_list[0]))[1])
 
 
-        print("番号取得完了")
+            print("番号取得完了")
 
-        #ページ選択
-        for i in range(place_page):
-            driver.find_element(By.LINK_TEXT, "次").click()
+            #ページ選択
+            for i in range(place_page):
+                driver.find_element(By.LINK_TEXT, "次").click()
 
-        #会場番号選択
-        driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
-        #会場確定
-        driver.find_element(By.ID, "btn_select_medical").click()
+            #会場番号選択
+            driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
+            #会場確定
+            driver.find_element(By.ID, "btn_select_medical").click()
 
-        if chk_calendar(driver):
-            exit()
+            if chk_calendar(driver):
+                exit()
 
     else:
         print("ログインエラーまたはメンテナンス中です")
