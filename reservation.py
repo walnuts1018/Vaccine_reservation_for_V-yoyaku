@@ -122,7 +122,7 @@ def chk_calendar(driver):
         #予約可能期間か確認
         td=res_datetime-now_datetime
         print("予約日-本日=",td.days , "20以上なら予約処理されません")
-        if td.days < 1:
+        if td.days < 0:
             print("configの日付が古いです")
             n=n+1
             continue
@@ -267,16 +267,20 @@ def reserve():
         driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
         print("接種会場ページ遷移完了")
 
-        element = WebDriverWait(driver, config["timeout"]).until(
-        expected_conditions.presence_of_element_located((By.ID, "reserve_status_check"))
-        )
-        driver.find_element(By.ID, "reserve_status_check").click()
-
         for medical in config["medical"]:
+
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.ID, "reserve_status_check"))
+            )
+            if config["mode"] != 1:
+                if driver.find_element(By.ID, "reserve_status_check").is_selected() == True:
+                    driver.find_element(By.ID, "reserve_status_check").click()
+
             #会場名を入力
             element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.ID, "medical_institution_name"))
             )
+            driver.find_element(By.ID, "medical_institution_name").clear()
             driver.find_element(By.ID, "medical_institution_name").send_keys(medical["name"])
 
             time.sleep(1)
@@ -284,16 +288,20 @@ def reserve():
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
             )
             
-            for retry_cnt in range(config["limit"]):
-                if select_medical(driver):
-                    break
+            if config["mode"] == 1:
+                limit = config["limit"]
+                place_page = place_num = 0
+            else:
+                limit = 1
+                place_page=int(medical["index"]/10)
+                place_num=medical["index"]-(place_page*10)
+            for retry_cnt in range(limit):
+                ret = select_medical(driver)
+                if ret:
+                    break                   
                 time.sleep(config["interval"])
-
-            #会場indexを取得
-            place_page=int(medical["index"]/10)
-            place_num=medical["index"]-(place_page*10)
-
-            print("番号取得完了")
+            if ret == False:
+                continue
 
             #ページ選択
             for i in range(place_page):
@@ -304,8 +312,27 @@ def reserve():
             #会場確定
             driver.find_element(By.ID, "btn_select_medical").click()
 
-            if chk_calendar(driver):
-                exit()
+            if config["mode"] == 2:
+                limit = config["limit"]
+            else:
+                limit = 1
+            for retry_cnt in range(limit):
+                if chk_calendar(driver):
+                    exit()
+                # カレンダーを閉じる
+                driver.find_element(By.ID, "btn_calender_modal_close").click()
+                if retry_cnt != 0:
+                    time.sleep(config["interval"])
+                    # カレンダーを開き直す(最新の情報が取得される)
+                    driver.find_element(By.ID, "btn_select_Date").click()
+                    time.sleep(1)
+
+            if medical != config["medical"][-1]:
+                #接種会場を選択ボタン
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
+                print("接種会場ページ遷移完了")
+
 
     else:
         print("ログインエラーまたはメンテナンス中です")
@@ -345,8 +372,10 @@ config=json.load(f)
 f.close()
 
 reserve()
-while True:
-    schedule.run_pending()
-    time.sleep(60)
-    
+
+if config["mode"] == 0:
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+        
 
