@@ -274,6 +274,9 @@ def reserve():
             if config["mode"] != 1:
                 if driver.find_element(By.ID, "reserve_status_check").is_selected() == True:
                     driver.find_element(By.ID, "reserve_status_check").click()
+            else:
+                if driver.find_element(By.ID, "reserve_status_check").is_selected() == False:
+                    driver.find_element(By.ID, "reserve_status_check").click()
 
             #会場名を入力
             element = WebDriverWait(driver, config["timeout"]).until(
@@ -320,17 +323,16 @@ def reserve():
                     exit()
                 # カレンダーを閉じる
                 driver.find_element(By.ID, "btn_calender_modal_close").click()
-                if retry_cnt != 0:
+                if retry_cnt != limit - 1:
                     time.sleep(config["interval"])
                     # カレンダーを開き直す(最新の情報が取得される)
                     driver.find_element(By.ID, "btn_select_Date").click()
                     time.sleep(1)
 
-            if medical != config["medical"][-1]:
-                #接種会場を選択ボタン
-                time.sleep(1)
-                driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
-                print("接種会場ページ遷移完了")
+            #接種会場を選択ボタン
+            time.sleep(1)
+            driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
+            print("接種会場ページ遷移完了")
 
 
     else:
