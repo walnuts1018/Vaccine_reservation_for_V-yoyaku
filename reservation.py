@@ -127,8 +127,7 @@ def chk_calendar(driver):
             n=n+1
             continue
 
-        #本来20日(余裕をもって21にしてみる)
-        if int(td.days) <=21:
+        if int(td.days) <= config["date"]["limit"]:
 
             selmonth=month_i-now_month
 
