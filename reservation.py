@@ -324,8 +324,7 @@ def reserve():
                     break                   
                 time.sleep(config["interval"])
             if ret == False:
-                continue
-
+            
             #ページ選択
             for i in range(place_page):
                 driver.find_element(By.LINK_TEXT, "次").click()
