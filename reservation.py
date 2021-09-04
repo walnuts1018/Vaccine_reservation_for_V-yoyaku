@@ -58,7 +58,7 @@ def chk_time_table(driver):
             res_mark_text_time="×"
 
 
-        print(res_mark_text_time)
+        print(time_num_i,"は",res_mark_text_time,"です。")
 
         if res_mark_text_time == "×":
             n_time=n_time+1
@@ -82,14 +82,29 @@ def chk_time_table(driver):
             )
             time.sleep(3)
             
+            #確定時にエラーが発生した場合時間選択処理を中止し、カレンダー画面に遷移させた後、chk_calenderにもどります。
             if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
-                break
-                
+                driver.find_element(By.ID, "btn_reservation_back").click()
+                assert driver.switch_to.alert.text == "3020e003:予約は登録（又は変更）されていませんが、中止してよろしいでしょうか。"
+                driver.switch_to.alert.accept()
+                driver.find_element(By.ID, "btn_select_Date").click()
+                time.sleep(1)
+                element = WebDriverWait(driver, config["timeout"]).until(
+                expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
+                )
+                return False
+               
             else:
                 print("予約が完了しました")
                 driver.quit()
                 return True
 
+    #カレンダー表示に戻してからchk_calenderに戻ります。
+    driver.find_element(By.ID, "month").click()
+    time.sleep(1)
+    element = WebDriverWait(driver, config["timeout"]).until(
+    expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
+    )
     return False
 
 def chk_calendar(driver):
@@ -111,22 +126,24 @@ def chk_calendar(driver):
 
         #予約する日付
         date_num_i=(date_list[n])
-        print(date_num_i)
+        print("-------------------------")
+        print(date_num_i,"の予約処理を行います")
         month_i=int(date_num_i[0:2])
         date_i=int(date_num_i[2:4])
-        print(month_i,date_i)
+        day_out=date_num_i
 
         #予約する日時のdatetime作成
         res_datetime_str = str(date_year)+"-"+str(month_i)+"-"+str(date_i)+" 00:00:01"
         res_datetime = datetime.strptime(res_datetime_str, '%Y-%m-%d %H:%M:%S')
         #予約可能期間か確認
         td=res_datetime-now_datetime
-        print("予約日-本日=",td.days , "20以上なら予約処理されません")
+        print("予約日-本日は",td.days , "日です。")
         if td.days < 0:
-            print("configの日付が古いです")
+            print("configの日付が古いです。実行に問題はありませんが処理が遅くなります。古い日付を削除することをお勧めします。")
             n=n+1
             continue
 
+        #デバッグ時は数字を大きくしてください。
         if int(td.days) <= config["date"]["limit"]:
 
             selmonth=month_i-now_month
@@ -134,12 +151,13 @@ def chk_calendar(driver):
             element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
             )
-            #月選択
-
+            #月選択処理
+            #予約月-今月 分カレンダーを右にしています。
             for i in range(selmonth):
                 driver.find_element(By.CSS_SELECTOR, "#calendar .fc-right .fa").click()
             now_month = month_i
 
+            #目的の日付がテーブルのどこにあるかを処理しています。
             #ここの番号1から始まるので注意
             def get_nth_week2(year, month, day, firstweekday=0):
                 first_dow = calendar.monthrange(year, month)[0]
@@ -150,11 +168,13 @@ def chk_calendar(driver):
 
             week_num=res_num_tuple[0]
             date_num_i=res_num_tuple[1]+1
+            #デバッグ用、上から、右から何番目かの数字
             print(week_num,date_num_i)
 
             time.sleep(2)
             
             try:
+                #○×の要素があるか確認。会場によっては空欄のことがあるので。
                 element = WebDriverWait(driver, 1).until(
                 expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
                 )
@@ -170,7 +190,7 @@ def chk_calendar(driver):
                 n=n+1
                 continue
             
-            print(res_mark_text)
+            print(day_out,"は",res_mark_text,"です")
 
             if res_mark_text != "〇" and res_mark_text != "△":
                 n=n+1
@@ -182,12 +202,13 @@ def chk_calendar(driver):
 
                 if chk_time_table(driver):
                     return True
-                n=n+1
-                continue
+                else:
+                    n=n+1
+                    continue
         else:
             n=n+1
             continue
-
+    print("-------------------------")
     return False
 
 def select_medical(driver):
@@ -202,7 +223,7 @@ def select_medical(driver):
     element = driver.find_element(By.CSS_SELECTOR, "body")
     actions = ActionChains(driver)
     driver.execute_script("window.scrollTo(0,0)")
-    print("検索完了")
+    print("接種会場一覧検索完了")
 
     try:
         element = WebDriverWait(driver, config["timeout"]).until(
@@ -216,10 +237,9 @@ def select_medical(driver):
 
 def reserve():
      
-    #　ヘッドレスモードでブラウザを起動
     options = Options()
-    #GUIで実行を確認する場合下の一行をコメントアウト
     if config["headless"]:
+        # ヘッドレスモードでブラウザを起動
         options.add_argument('--headless')
  
     # ブラウザーを起動
@@ -231,7 +251,7 @@ def reserve():
     #接種券番号、パスワードを入力
     ticket_number=config["account"]["number"]
     password=config["account"]["pass"]
-    print("login情報取得完了")
+    print("アカウント情報取得完了")
 
     element = WebDriverWait(driver, config["timeout"]).until(
     expected_conditions.presence_of_element_located((By.ID, "login_id"))
@@ -243,7 +263,7 @@ def reserve():
     driver.find_element_by_xpath("//*[@id='login_id']").send_keys(ticket_number)
     #driver.find_element(By.ID, "login_pwd").click()
     driver.find_element(By.ID, "login_pwd").send_keys(password)
-    print("入力完了")
+    print("アカウント情報入力完了")
     driver.find_element_by_xpath("//*[@id='btn_login']").click()
     
 
@@ -265,6 +285,7 @@ def reserve():
         time.sleep(1)
         driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
         print("接種会場ページ遷移完了")
+        print("-------------------------")
 
         for medical in config["medical"]:
 
@@ -341,29 +362,6 @@ def reserve():
         
     # ブラウザ停止
     driver.quit()
-
-"""     
-    pf = platform.system()
-    if pf == 'Windows':
-        try:
-            res = subprocess.check_call("taskkill /im chromedriver")
-        except:
-            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
-
-    elif pf == 'Darwin':
-        try:
-            res = subprocess.check_call("pkill chromedriver")
-        except:
-            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
-
-    elif pf == 'Linux':
-        try:
-            res = subprocess.check_call("pkill chromedriver")
-        except:
-            print("Chromeプロセスを終了できませんでした。エラーが出た場合pkill chromeを実行してください。")
-"""
-
-
 
 schedule.every(1).hour.do(reserve)
 schedule.every().day.at("00:00").do(reserve)
