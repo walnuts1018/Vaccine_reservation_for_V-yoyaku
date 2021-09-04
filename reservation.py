@@ -324,8 +324,7 @@ def reserve():
                     break                   
                 time.sleep(config["interval"])
             if ret == False:
-                continue
-
+            
             #ページ選択
             for i in range(place_page):
                 driver.find_element(By.LINK_TEXT, "次").click()
@@ -351,7 +350,16 @@ def reserve():
                     time.sleep(1)
 
             #接種会場を選択ボタン
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+            )
             time.sleep(1)
+            driver.execute_script("window.scrollTo(0,970);")
+            time.sleep(1)
+
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+            )
             driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
             print("接種会場ページ遷移完了")
 
