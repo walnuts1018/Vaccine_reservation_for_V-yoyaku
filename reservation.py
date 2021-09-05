@@ -337,6 +337,13 @@ def reserve():
                     exit()
                     
                 # カレンダーを閉じる
+                try:
+                    element = WebDriverWait(driver, config["timeout"]).until(
+                    expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div[2]/div[2]/table/thead/tr/td[2]/span[2]'))
+                    )
+                except:
+                    time.wait()
+                    
                 click(driver, By.ID, "btn_calender_modal_close")
                 if retry_cnt != limit - 1:
                     time.sleep(config["interval"])
