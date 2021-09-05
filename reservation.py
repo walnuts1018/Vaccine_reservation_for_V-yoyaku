@@ -244,7 +244,7 @@ def reserve():
  
     # ブラウザーを起動
     driver = webdriver.Chrome(options=options)
-     
+    driver.set_window_size(1280,720)
     # urlにアクセス
     driver.get(config["url"])
 
@@ -342,7 +342,14 @@ def reserve():
             for retry_cnt in range(limit):
                 if chk_calendar(driver):
                     exit()
+                    
                 # カレンダーを閉じる
+    
+                time.sleep(1)
+                element = WebDriverWait(driver, config["timeout"]).until(
+                expected_conditions.presence_of_element_located((By.ID, "btn_calender_modal_close"))
+                )
+                
                 driver.find_element(By.ID, "btn_calender_modal_close").click()
                 if retry_cnt != limit - 1:
                     time.sleep(config["interval"])
@@ -351,11 +358,8 @@ def reserve():
                     time.sleep(1)
 
             #接種会場を選択ボタン
-            element = WebDriverWait(driver, config["timeout"]).until(
-            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
-            )
             time.sleep(1)
-            driver.execute_script("window.scrollTo(0,970);")
+            driver.execute_script("window.scrollTo(0,900);")
             time.sleep(1)
 
             element = WebDriverWait(driver, config["timeout"]).until(
