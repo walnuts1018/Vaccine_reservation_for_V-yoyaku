@@ -30,12 +30,6 @@ def ntp_now(server, port = 123):
     else:
         None
 
-def click(driver, attribute, str):
-    element = WebDriverWait(driver, config["timeout"]).until(
-        expected_conditions.presence_of_element_located((attribute, str))
-    )
-    driver.find_element(attribute, str).click()
-
 def chk_time_table(driver):
 
     #時間取得
@@ -71,13 +65,17 @@ def chk_time_table(driver):
             continue
 
         else:
-            click(driver, By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div")
+            driver.find_element(By.XPATH, "//*[@id='dayly-calendar-table']/tbody/tr["+str(uekara_num+1)+"]/td["+str(migikara_num)+"]/div/div").click() 
 
             #予約を確定する
             time.sleep(3)
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.ID, "btn_reservation_entry"))
+            )
             driver.execute_script("window.scrollTo(0,1100);")
 
-            click(driver, By.ID, "btn_reservation_entry")
+            #driver.find_element(By.XPATH, '//*[@id="btn_reservation_entry"]/i').click()
+            driver.find_element(By.ID, "btn_reservation_entry").click()
 
             element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
@@ -89,7 +87,7 @@ def chk_time_table(driver):
                 driver.find_element(By.ID, "btn_reservation_back").click()
                 assert driver.switch_to.alert.text == "3020e003:予約は登録（又は変更）されていませんが、中止してよろしいでしょうか。"
                 driver.switch_to.alert.accept()
-                click(driver, By.ID, "btn_select_Date")
+                driver.find_element(By.ID, "btn_select_Date").click()
                 time.sleep(1)
                 element = WebDriverWait(driver, config["timeout"]).until(
                 expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
@@ -102,7 +100,7 @@ def chk_time_table(driver):
                 return True
 
     #カレンダー表示に戻してからchk_calenderに戻ります。
-    click(driver, By.ID, "month")
+    driver.find_element(By.ID, "month").click()
     time.sleep(1)
     element = WebDriverWait(driver, config["timeout"]).until(
     expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
@@ -150,10 +148,13 @@ def chk_calendar(driver):
 
             selmonth=month_i-now_month
 
+            element = WebDriverWait(driver, config["timeout"]).until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#calendar .fc-right .fa"))
+            )
             #月選択処理
             #予約月-今月 分カレンダーを右にしています。
             for i in range(selmonth):
-                click(driver, By.CSS_SELECTOR, "#calendar .fc-right .fa")
+                driver.find_element(By.CSS_SELECTOR, "#calendar .fc-right .fa").click()
             now_month = month_i
 
             #目的の日付がテーブルのどこにあるかを処理しています。
@@ -197,7 +198,7 @@ def chk_calendar(driver):
 
             else:
                 #日付クリック
-                click(driver, By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']')
+                driver.find_element(By.XPATH, '//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+']/div[1]/table/tbody/tr/td['+str(date_num_i)+']').click()
 
                 if chk_time_table(driver):
                     return True
@@ -207,13 +208,15 @@ def chk_calendar(driver):
         else:
             n=n+1
             continue
+            
     print("-------------------------")
+    
     return False
 
 def select_medical(driver):
 
     #検索ボタン
-    click(driver, By.ID, "btn_search_medical")
+    driver.find_element(By.ID, "btn_search_medical").click()
 
     #多分検索処理？
     element = driver.find_element(By.ID, "btn_search_medical")
@@ -258,10 +261,12 @@ def reserve():
 
     driver.execute_script("window.scrollTo(0,2900);")
     time.sleep(1)
+    #driver.find_element(By.ID, "login_id").click()
     driver.find_element_by_xpath("//*[@id='login_id']").send_keys(ticket_number)
+    #driver.find_element(By.ID, "login_pwd").click()
     driver.find_element(By.ID, "login_pwd").send_keys(password)
     print("アカウント情報入力完了")
-    click(driver, By.ID, "btn_login")
+    driver.find_element_by_xpath("//*[@id='btn_login']").click()
     
 
     element = WebDriverWait(driver, config["timeout"]).until(
@@ -270,13 +275,17 @@ def reserve():
     if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
         print("ログイン完了")
         #予約・変更するボタン
-        click(driver, By.CSS_SELECTOR, "#mypage_accept font")
+        driver.find_element(By.CSS_SELECTOR, "#mypage_accept font").click()
         print("予約ページ遷移完了")
         
+        element = WebDriverWait(driver, config["timeout"]).until(
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
+        )
+
         driver.execute_script("window.scrollTo(0,870);")
         #接種会場を選択ボタン
         time.sleep(1)
-        click(driver, By.CSS_SELECTOR, "#btn_Search_Medical > font")
+        driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
         print("接種会場ページ遷移完了")
         print("-------------------------")
 
@@ -287,10 +296,10 @@ def reserve():
             )
             if config["mode"] != 1:
                 if driver.find_element(By.ID, "reserve_status_check").is_selected() == True:
-                    click(driver, By.ID, "reserve_status_check")
+                    driver.find_element(By.ID, "reserve_status_check").click()
             else:
                 if driver.find_element(By.ID, "reserve_status_check").is_selected() == False:
-                    click(driver, By.ID, "reserve_status_check")
+                    driver.find_element(By.ID, "reserve_status_check").click()
 
             #会場名を入力
             element = WebDriverWait(driver, config["timeout"]).until(
@@ -321,12 +330,12 @@ def reserve():
 
             #ページ選択
             for i in range(place_page):
-                click(driver, By.LINK_TEXT, "次")
+                driver.find_element(By.LINK_TEXT, "次").click()
 
             #会場番号選択
-            click(driver, By.ID, "search_medical_table_radio_"+str(place_num))
+            driver.find_element(By.ID, "search_medical_table_radio_"+str(place_num)).click()
             #会場確定
-            click(driver, By.ID, "btn_select_medical")
+            driver.find_element(By.ID, "btn_select_medical").click()
 
             if config["mode"] == 2:
                 limit = config["limit"]
@@ -337,11 +346,18 @@ def reserve():
                     exit()
                     
                 # カレンダーを閉じる
-                click(driver, By.ID, "btn_calender_modal_close")
+                try:
+                    element = WebDriverWait(driver, config["timeout"]).until(
+                    expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div[2]/div[2]/table/thead/tr/td[2]/span[2]'))
+                    )
+                except:
+                    time.wait(1)
+                    
+                driver.find_element(By.ID, "btn_calender_modal_close").click()
                 if retry_cnt != limit - 1:
                     time.sleep(config["interval"])
                     # カレンダーを開き直す(最新の情報が取得される)
-                    click(driver, By.ID, "btn_select_Date")
+                    driver.find_element(By.ID, "btn_select_Date").click()
                     time.sleep(1)
 
             #接種会場を選択ボタン
@@ -352,7 +368,7 @@ def reserve():
             element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#btn_Search_Medical > font"))
             )
-            click(driver, By.CSS_SELECTOR, "#btn_Search_Medical > font")
+            driver.find_element(By.CSS_SELECTOR, "#btn_Search_Medical > font").click()
             print("接種会場ページ遷移完了")
 
 
