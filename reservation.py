@@ -31,10 +31,18 @@ def ntp_now(server, port = 123):
         None
 
 def click(driver, attribute, str):
-    element = WebDriverWait(driver, config["timeout"]).until(
-        expected_conditions.presence_of_element_located((attribute, str))
-    )
-    driver.find_element(attribute, str).click()
+    base_time = time.time()
+    while (time.time() - base_time) < config["timeout"]:
+        try:
+            element = WebDriverWait(driver, config["timeout"]).until(
+                expected_conditions.presence_of_element_located((attribute, str))
+            )
+            #上でWaitしているのにここで例外が発生する場合あり
+            driver.find_element(attribute, str).click()
+            return True
+        except:
+            time.sleep(1)
+    return False
 
 def chk_time_table(driver):
 
@@ -86,7 +94,7 @@ def chk_time_table(driver):
             
             #確定時にエラーが発生した場合時間選択処理を中止し、カレンダー画面に遷移させた後、chk_calenderにもどります。
             if len(driver.find_elements_by_xpath('//*[@id="modal-input-reserve-error-message-btn"]/p')) > 0:
-                driver.find_element(By.ID, "btn_reservation_back").click()
+                click(driver,By.ID,"btn_reservation_back")
                 assert driver.switch_to.alert.text == "3020e003:予約は登録（又は変更）されていませんが、中止してよろしいでしょうか。"
                 driver.switch_to.alert.accept()
                 click(driver, By.ID, "btn_select_Date")
