@@ -284,10 +284,15 @@ def reserve():
     print("アカウント情報入力完了")
     click(driver, By.ID, "btn_login")
     
+    try:
+        element = WebDriverWait(driver, config["timeout"]).until(
+        expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
+        )
+    except:
+        print("ログインエラーまたはメンテナンス中です")
+        # ブラウザ停止
+        driver.quit()
 
-    element = WebDriverWait(driver, config["timeout"]).until(
-    expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#mypage_accept font"))
-    )
     if len(driver.find_elements(By.CSS_SELECTOR, "#mypage_accept font")) > 0:
         print("ログイン完了")
         #予約・変更するボタン
