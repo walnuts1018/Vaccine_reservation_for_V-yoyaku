@@ -50,11 +50,13 @@ def chk_time_table(driver):
     time_list=config["date"]["time_list"]
 
     n_time=0
+
+    element = WebDriverWait(driver, config["timeout"]).until(
+    expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
+    )
+    time.sleep(1)
     for i in time_list:
-        element = WebDriverWait(driver, config["timeout"]).until(
-        expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span"))
-        )
-        time.sleep(1)
+
         start_hour=driver.find_element(By.XPATH,"//*[@id='dayly-calendar-table']/tbody/tr[2]/th/div/span").text
         time_num_i=(time_list[n_time])
         hour_i=int(time_num_i[0:2])
@@ -134,6 +136,7 @@ def chk_calendar(driver):
     date_list=config["date"]["date_list"]
 
     n=0
+    found = False
     for i in date_list:
 
         #予約する日付
@@ -182,13 +185,19 @@ def chk_calendar(driver):
                 #デバッグ用、上から、右から何番目かの数字
                 print(week_num,date_num_i)
 
-            time.sleep(2)
+            if found:
+                # forループ内で一度でも発見していれば読み込み終えている前提で良いはず
+                timeout = 0
+            else:
+                timeout = 1
+                time.sleep(2)
             
             try:
                 #○×の要素があるか確認。会場によっては空欄のことがあるので。
-                element = WebDriverWait(driver, 1).until(
+                element = WebDriverWait(driver, timeout).until(
                 expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="calendar"]/div[2]/div/table/tbody/tr/td/div/div/div['+str(week_num)+"]/div[2]/table/thead/tr/td["+str(date_num_i)+"]/span[2]"))
                 )
+                found = True
             except:
                 #指定した日付が空欄だった場合
                 n=n+1
