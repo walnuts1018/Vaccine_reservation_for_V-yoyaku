@@ -85,7 +85,9 @@ def chk_time_table(driver):
             time.sleep(3)
             driver.execute_script("window.scrollTo(0,1100);")
 
-            click(driver, By.ID, "btn_reservation_entry")
+            if config["debug"]:
+                #デバッグ中に本当に予約してしまうと困るため
+                click(driver, By.ID, "btn_reservation_entry")
 
             element = WebDriverWait(driver, config["timeout"]).until(
             expected_conditions.presence_of_element_located((By.XPATH, '//*[@id="modal-input-reserve-error-message-btn"]'))
@@ -147,7 +149,8 @@ def chk_calendar(driver):
         res_datetime = datetime.strptime(res_datetime_str, '%Y-%m-%d %H:%M:%S')
         #予約可能期間か確認
         td=res_datetime-now_datetime
-        print("予約日-本日は",td.days , "日です。")
+        if config["debug"]:
+            print("予約日-本日は",td.days , "日です。")
         if td.days < 0:
             print("configの日付が古いです。実行に問題はありませんが処理が遅くなります。古い日付を削除することをお勧めします。")
             n=n+1
@@ -175,8 +178,9 @@ def chk_calendar(driver):
 
             week_num=res_num_tuple[0]
             date_num_i=res_num_tuple[1]+1
-            #デバッグ用、上から、右から何番目かの数字
-            print(week_num,date_num_i)
+            if config["debug"]:
+                #デバッグ用、上から、右から何番目かの数字
+                print(week_num,date_num_i)
 
             time.sleep(2)
             
